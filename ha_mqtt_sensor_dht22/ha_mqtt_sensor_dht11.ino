@@ -1,5 +1,5 @@
 /*
-   MQTT Sensor - Temperature and Humidity (DHT22) for Home-Assistant - NodeMCU (ESP8266)
+   MQTT Sensor - Temperature and Humidity (DHT11) for Home-Assistant - NodeMCU (ESP8266)
    https://home-assistant.io/components/sensor.mqtt/
 
    Libraries :
@@ -17,11 +17,11 @@
     - http://www.jerome-bernard.com/blog/2015/10/04/wifi-temperature-sensor-with-nodemcu-esp8266/
 
    Schematic :
-    - https://github.com/mertenats/open-home-automation/blob/master/ha_mqtt_sensor_dht22/Schematic.png
-    - DHT22 leg 1 - VCC
-    - DHT22 leg 2 - D1/GPIO5 - Resistor 4.7K Ohms - GND
-    - DHT22 leg 4 - GND
-    - D0/GPIO16 - RST (wake-up purpose)
+    - https://github.com/mertenats/open-home-automation/blob/master/ha_mqtt_sensor_dht11/Schematic.png
+    - DHT11 leg 1 - VCC
+    - DHT11 leg 2 - D1/GPIO5 - Resistor 4.7K Ohms - GND
+    - DHT11 leg 4 - GND
+    
 
    Configuration (HA) :
     sensor 1:
@@ -41,6 +41,12 @@
    Samuel M. - v1.1 - 08.2016
    If you like this example, please add a star! Thank you!
    https://github.com/mertenats/open-home-automation
+   
+   Satkom - 10.2016
+   - Adapted for DHT11 sensor. 
+   - Sleep and wifi disconnect removed. 
+   - regular temp updates at 1 sec intervals. this can be adjusted by changing the final loop delay time.
+   
 */
 
 #include <ESP8266WiFi.h>
@@ -55,7 +61,7 @@ const char* WIFI_SSID = "[Redacted]";
 const char* WIFI_PASSWORD = "[Redacted]";
 
 // MQTT: ID, server IP, port, username and password
-const PROGMEM char* MQTT_CLIENT_ID = "office_dht22";
+const PROGMEM char* MQTT_CLIENT_ID = "office_dht11";
 const PROGMEM char* MQTT_SERVER_IP = "[Redacted]";
 const PROGMEM uint16_t MQTT_SERVER_PORT = 1883;
 const PROGMEM char* MQTT_USER = "[Redacted]";
@@ -69,7 +75,7 @@ const PROGMEM uint16_t SLEEPING_TIME_IN_SECONDS = 600; // 10 minutes x 60 second
 
 // DHT - D1/GPIO5
 #define DHTPIN 5
-#define DHTTYPE DHT22
+#define DHTTYPE DHT11
 
 DHT dht(DHTPIN, DHTTYPE);
 WiFiClient wifiClient;
@@ -167,12 +173,5 @@ void loop() {
     publishData(t, h);
   }
 
-  Serial.println("INFO: Closing the MQTT connection");
-  client.disconnect();
-
-  Serial.println("INFO: Closing the Wifi connection");
-  WiFi.disconnect();
-
-  ESP.deepSleep(SLEEPING_TIME_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);
-  delay(500); // wait for deep sleep to happen
+  delay(1000); // wait 
 }
